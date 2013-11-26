@@ -1,0 +1,17 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b44dc20..66e6a71 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -90,9 +90,12 @@ SET (DNEST_SRC
+      src/Utils.cpp)
+ 
+ ADD_LIBRARY (dnest3 STATIC ${DNEST_SRC})
++ADD_LIBRARY (dnest3s SHARED ${DNEST_SRC})
+ TARGET_LINK_LIBRARIES (dnest3 ${DNEST_DEPS})
++TARGET_LINK_LIBRARIES (dnest3s ${DNEST_DEPS})
+ 
+ INSTALL (TARGETS dnest3 DESTINATION lib)
++INSTALL (TARGETS dnest3s DESTINATION lib)
+ INSTALL (FILES include/CommandLineOptions.h
+                include/Level.h
+                include/LikelihoodType.h
