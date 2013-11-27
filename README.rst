@@ -4,7 +4,7 @@ PyDNest
 This package provides
 
 * Python connection to the C implementation of Diffusive Nested Sampling (`DNest3 <https://github.com/eggplantbren/DNest3>`_).
-* Pure Python re-implementation of Diffusive Nested Sampling (diffusenested.py).
+* Pure Python re-implementation of Diffusive Nested Sampling (diffusivenested.py).
 
 This software is in beta status -- verify the results and report bugs!
 
