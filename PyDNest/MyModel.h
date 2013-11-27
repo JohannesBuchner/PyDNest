@@ -27,6 +27,7 @@ class MyModel:public DNest3::Model
 {
 	private:
 		void * u;
+		double v;
 	public:
 		MyModel();
 

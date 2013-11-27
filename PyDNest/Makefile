@@ -1,5 +1,7 @@
-CFLAGS = -fPIC -O2 -Wall -Wextra -ansi -pedantic -I ../../include/ 
-LIBS =  -ldnest3s -lgsl -lgslcblas -lboost_system -lboost_thread -L ../../lib/
+
+DNESTDIR ?= DNest3/
+CFLAGS = -fPIC -O2 -Wall -Wextra -ansi -pedantic -I ${DNESTDIR}/include/
+LIBS =  -ldnest3s -lgsl -lgslcblas -lboost_system -lboost_thread -L ${DNESTDIR}/lib/
 
 all: libdnestbridge.so
 %.o: %.cpp

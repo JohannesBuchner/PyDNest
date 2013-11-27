@@ -34,18 +34,21 @@ extern "C" {
 	void (*ext_fromPrior)(void * u) = NULL;
 	double (*ext_perturb)(void * u) = NULL;
 	double (*ext_logLikelihood)(void * u) = NULL;
+	void (*ext_print)(void * u, char * s) = NULL;
 	
 	void set_callbacks(
 		void * (*arg_allocate)(),
 		void (*arg_fromPrior)(void * u),
 		double (*arg_perturb)(void * u),
-		double (*arg_logLikelihood)(void * u)
+		double (*arg_logLikelihood)(void * u),
+		void (*arg_print)(void * u, char * s)
 	) {
 		ifverbose printf("setting callback functions...\n");
 		ext_allocate = arg_allocate;
 		ext_fromPrior = arg_fromPrior;
 		ext_perturb = arg_perturb;
 		ext_logLikelihood = arg_logLikelihood;
+		ext_print = arg_print;
 		ifverbose printf("setting callback functions done.\n");
 	}
 	
@@ -60,6 +63,7 @@ MyModel::MyModel()
 
 void MyModel::fromPrior()
 {
+	v = randomU();
 	ifverbose cout << "MyModel::fromPrior. calling fromPrior" << endl;
 	ext_fromPrior(u);
 	ifverbose cout << "MyModel::fromPrior. calling fromPrior done" << endl;
@@ -67,6 +71,10 @@ void MyModel::fromPrior()
 
 double MyModel::perturb()
 {
+	//RandomNumberGenerator::get_instance().set_seed(1);
+	//v += pow(10., 1.5 - 6*randomU())*randn();
+	//v = mod(v, 1.);
+	//return 0.;
 	ifverbose cout << "MyModel::perturb. calling perturb" << endl;
 	double H = ext_perturb(u);
 	ifverbose cout << "MyModel::perturb. calling perturb done: " << H << endl;
@@ -76,18 +84,24 @@ double MyModel::perturb()
 double MyModel::logLikelihood() const
 {
 	ifverbose cout << "MyModel::logLikelihood. calling logLikelihood" << endl;
-	double l = ext_logLikelihood(u);
+	double w = ext_logLikelihood(u);
+	double l = -log(0.01 * sqrt(2*M_PI)) - 0.5 * pow((w - 0.654321) / 0.01, 2);
 	ifverbose cout << "MyModel::logLikelihood. calling logLikelihood done: " << l << endl;
 	return l;
 }
 
 void MyModel::print(std::ostream& out) const
 {
-
+	ifverbose cout << "MyModel::print. calling print" << endl;
+	char s[500] = "1.2 3.4 5.6\0";
+	if (ext_print != NULL)
+		ext_print(u, s);
+	out << s << " ";
+	ifverbose cout << "MyModel::print. calling print done: " << endl;
 }
 
 string MyModel::description() const
 {
-	return string("");
+	return string("PyDNest");
 }
 

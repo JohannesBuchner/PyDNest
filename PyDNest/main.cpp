@@ -47,11 +47,21 @@ int run(int seed, double compression, char * optionsfile)
 	// Load sampler options from file
 	Options samplerOptions(optionsfile);
 
+	std::cout<<"# Using "<<1<<" thread"<<
+		((1 == 1)?("."):("s."))<<std::endl;
+
+	std::cout<<"# Target compression factor between levels = ";
+	std::cout<< compression <<std::endl;
+
+	// Seed random number generator
+	std::cout<<"# Seeding random number generator with "<<
+		seed <<"."<<std::endl;
+
 	// Create sampler
 	#ifndef DNest3_No_Boost
 	MTSampler<MyModel> sampler(1, compression, samplerOptions);
 	#else
-	#error "non-boost functionality not implemented"
+	Sampler<MyModel> sampler(samplerOptions);
 	#endif
 	cout << "running sampler:" << endl;
 	sampler.run();

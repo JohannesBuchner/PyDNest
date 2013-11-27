@@ -1,13 +1,14 @@
 import ctypes
-from ctypes import cdll, CFUNCTYPE, c_int, c_double, c_void_p, create_string_buffer
+from ctypes import cdll, CFUNCTYPE, c_int, c_double, c_char_p, c_char, c_void_p, create_string_buffer
 lib = cdll.LoadLibrary('./libdnestbridge.so')
 
 allocate_type = CFUNCTYPE(c_int)
 perturb_type = CFUNCTYPE(c_double, c_int)
 drawFromPrior_type = CFUNCTYPE(c_int, c_int)
 likelihood_type = CFUNCTYPE(c_double, c_int)
+print_type = CFUNCTYPE(c_void_p, c_int, ctypes.POINTER(ctypes.c_char))
 
-def dnest_run(allocate, drawFromPrior, perturb, likelihood,
+def dnest_run(allocate, drawFromPrior, perturb, likelihood, user_print=None,
 	compression = 2.7182818284590451, options_file = "OPTIONS",
 	seed = 0):
 	"""
@@ -33,11 +34,23 @@ Parameters
 **options_file**: Options file to load
 **seed**: Seed to use
 """
+
+	def ext_print(i, s):
+		#_buffer = create_string_buffer('%f ' % points[i])
+		c = ctypes.cast(s, ctypes.POINTER(ctypes.c_char))
+		addr = ctypes.addressof(s.contents)
+		c2 = (c_char*500).from_address(addr)
+		v = user_print(i)
+		#print 'print returns: "%s"' % v
+		c2[:len(v)] = v
+		c2[len(v)] = '\0'
+		return 0
 	
 	args = (allocate_type(allocate), 
 		drawFromPrior_type(drawFromPrior),
 		perturb_type(perturb),
-		likelihood_type(likelihood))
+		likelihood_type(likelihood),
+		print_type(ext_print) if user_print is not None else None)
 	lib.set_callbacks(*args)
 	
 	s = create_string_buffer(options_file)
@@ -47,9 +60,17 @@ Parameters
 
 if __name__ == '__main__':
 	# test example
+	import sys, os
 	import numpy
 	import scipy.stats
 
+	seed = int(os.environ.get('SEED', '0'))
+	#import pygsl.rng
+
+	#rng = pygsl.rng.mt19937()
+	#rng.set(seed)
+	numpy.random.seed(seed)
+	
 	points = []
 	ndim = 1
 
@@ -60,30 +81,43 @@ if __name__ == '__main__':
 		return i
 
 	def drawFromPrior(i):
-		#print 'drawFromPrior: %d' % i, points[i]
+		print 'drawFromPrior: %d' % i, points[i]
 		points[i] = numpy.random.uniform(0, 1, size=ndim)
+		#points[i] = rng.uniform()
 		print 'drawFromPrior: drew', points[i]
 		return 0
 
 	def perturb(i):
-		#print 'perturb: %d' % i, points[i]
+		#print 'perturb: %d %.5f' % (i, points[i])
 		params = points[i]
 		# alter a random direction
 		which = numpy.random.randint(ndim)
-		params[which] += 10**(1.5 - 6 * numpy.random.uniform(0,1)) * numpy.random.normal(0, 1);
-		# bounce off walls
-		params[which] = numpy.fmod(params[which] + 100, 1.);
+		p = params[which]
+		#rng.set(1)
+		#a = rng.uniform()
+		#b = rng.gaussian(1.)
+		#p += 10.**(1.5 - 6 * a) * b
+		p += 10**(1.5 - 6 * numpy.random.uniform(0,1)) * numpy.random.normal(0, 1);
+		# wrap around:
+		#print 'perturb: before wrapping %.5f %.5f %.5f' % (p, a, b)
+		points[i][which] = p - numpy.floor(p)
 		H = 0
-		#print 'perturb: new point %d' % i, points[i]
+		#print 'perturb: new point %d %.5f' % (i, points[i])
 		return H
 
 	rv = scipy.stats.norm([0.654321]*ndim, [0.01]*ndim)
 	def likelihood(i):
 		params = points[i]
-		l = rv.logpdf(params)
-		#print 'likelihood: L =', l
-		if numpy.random.randint(1000) == 999:
-			print 'likelihood: %d %-5.4f %-5.2f' % (i, points[i][0], l)
+		l = rv.logpdf(params).sum()
+		print 'likelihood: L = %.5f for %.5f' % (l, params)
+		if numpy.random.randint(200) == 199:
+			print 'likelihood: %d %-5.4f %-5.2f' % (i, points[i][0], float(l))
 		return l
-	dnest_run(allocate=allocate, drawFromPrior=drawFromPrior, perturb=perturb, likelihood=likelihood)
+	
+	def user_print(i):
+		return b'%15f 1 ' % points[i]
+	dnest_run(allocate=allocate, drawFromPrior=drawFromPrior, perturb=perturb, likelihood=likelihood,
+		user_print=user_print, seed=seed)
+
+
 
