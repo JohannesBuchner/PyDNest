@@ -8,13 +8,13 @@ This package provides
 
 This software is in beta status -- verify the results and report bugs!
 
-Install Connector
-===================
+Using the Connector to DNest3
+==============================
 
 1. Compile DNest into a shared library::
 
-   cd /dir/to/DNest3
-   patch -p1 < /dir/to/PyDNest/dnest3-build-sharedlib.patch
+	cd /dir/to/DNest3
+	patch -p1 < /dir/to/PyDNest/dnest3-build-sharedlib.patch
 
   rebuild DNest as usual (cmake, make)
   You should find libdnest3s.so in the build directory.
@@ -28,12 +28,9 @@ Install Connector
 
 3. You are ready to go. Try the example in run.py. First tell it where to find the two libraries you created::
 
-   export LD_LIBRARY_PATH=/dir/to/DNest3/build/:/dir/to/PyDNest/
-   
-   python run.py
+	export LD_LIBRARY_PATH=/dir/to/DNest3/build/:/dir/to/PyDNest/
 
-Usage
-==============
+	python run.py
 
 For using in your application, just import run.py and pass your functions to dnest_run. You need to define
 
